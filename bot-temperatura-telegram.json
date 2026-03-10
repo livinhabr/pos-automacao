@@ -1,0 +1,373 @@
+{
+  "name": "teste telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "id": "c1a19cbe-237c-4348-822a-25ec98bad6f5",
+      "name": "Telegram Trigger",
+      "webhookId": "7a2f617a-0832-4ef3-866e-0937e5fa0a21",
+      "credentials": {
+        "telegramApi": {
+          "id": "OlozMxWnIyHPAt7V",
+          "name": "Telegram account - Lívia"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "=Você é um assistente de meteorologia amigável e direto ao ponto, operando dentro de um bot do Telegram.\n\nSua única e exclusiva função é informar a temperatura e a condição climática atual de uma cidade brasileira especificada pelo usuário.\n\n**REGRAS OBRIGATÓRIAS:**\n\n1.  **SEMPRE USE A FERRAMENTA:** Você **DEVE OBRIGATORIAMENTE** usar a ferramenta `Tavily Search` para obter as informações de clima. Não tente responder com base em seu conhecimento prévio ou qualquer outra fonte.\n2.  **FORMATE A CONSULTA:** Ao usar a ferramenta, sua consulta (query) deve ser sempre no formato: `\"temperatura atual em [Nome da Cidade]\"`.\n3.  **EXTRAIA A CIDADE:** Identifique o nome da cidade na mensagem do usuário. Se o usuário perguntar \"Como está o tempo em Porto Alegre?\", sua consulta para a ferramenta será `\"temperatura atual em Porto Alegre\"`.\n4.  **RESPOSTA DIRETA:** Após obter o resultado da ferramenta, responda ao usuário de forma clara e concisa. Por exemplo: \"A temperatura atual em Porto Alegre é de 22°C com céu claro.\"\n5.  **MENSAGEM INVÁLIDA:** Se a mensagem do usuário não contiver o nome de uma cidade ou não for uma pergunta sobre o clima, responda educadamente: \"Olá! Posso informar a temperatura atual de qualquer cidade do Brasil. Por favor, me diga qual cidade você gostaria de consultar.\""
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3,
+      "position": [
+        144,
+        0
+      ],
+      "id": "31371e76-aea1-4b93-96cf-58b1baa05e42",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        144,
+        192
+      ],
+      "id": "8288d363-52c7-49eb-af96-ff4a8f89e5b8",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "UNWEz9xnE5xWT3BE",
+          "name": "Google Gemini(PaLM) Api Lívia"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "toolDescription": "=Use esta ferramenta para obter a temperatura e a condição climática atual de qualquer cidade do Brasil. A entrada para a ferramenta deve ser sempre uma consulta no formato \"temperatura atual em [Nome da Cidade]\".",
+        "method": "POST",
+        "url": "https://api.tavily.com/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "query",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `The search query.`, 'string') }}"
+            },
+            {
+              "name": "search_depth",
+              "value": "advanced"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        288,
+        192
+      ],
+      "id": "4d742dba-7be5-4299-8068-4a0a7b253d96",
+      "name": "Tavily Search",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "xecQOm7eR3ZD8MB9",
+          "name": "Tavily Authorization - Lívia"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "694aa0e1-895b-42d4-8a3f-6e58f5042cb8",
+              "name": "post",
+              "value": "={{ $json.output }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        416,
+        0
+      ],
+      "id": "fec22bd3-dd43-4b1c-80bf-c7b1fd66130f",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        560,
+        0
+      ],
+      "id": "aedcb1b5-94b1-48db-92dc-63356ff11157",
+      "name": "Get a chat",
+      "webhookId": "e5bb6898-c8a9-493e-86e8-67cf694f7db6",
+      "credentials": {
+        "telegramApi": {
+          "id": "OlozMxWnIyHPAt7V",
+          "name": "Telegram account - Lívia"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.result.id }}",
+        "text": "={{ $('AI Agent').item.json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        704,
+        0
+      ],
+      "id": "46751fde-2ee1-4e4a-8436-5b9e3f069b7d",
+      "name": "Send a text message",
+      "webhookId": "d005fe77-4e6a-4ac2-b01b-812957175ce3",
+      "credentials": {
+        "telegramApi": {
+          "id": "OlozMxWnIyHPAt7V",
+          "name": "Telegram account - Lívia"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Telegram Trigger": [
+      {
+        "json": {
+          "update_id": 90249891,
+          "message": {
+            "message_id": 5,
+            "from": {
+              "id": 708102364,
+              "is_bot": false,
+              "first_name": "Lívia",
+              "username": "livinhabr92",
+              "language_code": "pt-br"
+            },
+            "chat": {
+              "id": 708102364,
+              "first_name": "Lívia",
+              "username": "livinhabr92",
+              "type": "private"
+            },
+            "date": 1772114342,
+            "text": "Qual o clima em Belo Horizonte agora?"
+          }
+        }
+      }
+    ],
+    "AI Agent": [
+      {
+        "json": {
+          "output": "A temperatura atual em Belo Horizonte é de aproximadamente 27°C com chuva ligeira."
+        }
+      }
+    ],
+    "Edit Fields": [
+      {
+        "json": {
+          "post": "A temperatura atual em Belo Horizonte é de aproximadamente 27°C com chuva ligeira."
+        }
+      }
+    ],
+    "Get a chat": [
+      {
+        "json": {
+          "ok": true,
+          "result": {
+            "id": 708102364,
+            "first_name": "Lívia",
+            "username": "livinhabr92",
+            "type": "private",
+            "can_send_gift": true,
+            "active_usernames": [
+              "livinhabr92"
+            ],
+            "has_private_forwards": true,
+            "accepted_gift_types": {
+              "unlimited_gifts": true,
+              "limited_gifts": true,
+              "unique_gifts": true,
+              "premium_subscription": true,
+              "gifts_from_channels": true
+            },
+            "photo": {
+              "small_file_id": "AQADAQADyqcxG9zINCoACAIAA9zINCoABNjeIfrW9pUXOgQ",
+              "small_file_unique_id": "AQADyqcxG9zINCoAAQ",
+              "big_file_id": "AQADAQADyqcxG9zINCoACAMAA9zINCoABNjeIfrW9pUXOgQ",
+              "big_file_unique_id": "AQADyqcxG9zINCoB"
+            },
+            "max_reaction_count": 11,
+            "accent_color_id": 4
+          }
+        }
+      }
+    ],
+    "Send a text message": [
+      {
+        "json": {
+          "ok": true,
+          "result": {
+            "message_id": 18,
+            "from": {
+              "id": 8248198382,
+              "is_bot": true,
+              "first_name": "tempbot_brasil",
+              "username": "tempbot_brasil_bot"
+            },
+            "chat": {
+              "id": 708102364,
+              "first_name": "Lívia",
+              "username": "livinhabr92",
+              "type": "private"
+            },
+            "date": 1773084337,
+            "text": "A temperatura atual em Belo Horizonte é de aproximadamente 27°C com chuva ligeira.\n\nThis message was sent automatically with n8n",
+            "entities": [
+              {
+                "offset": 84,
+                "length": 41,
+                "type": "italic"
+              },
+              {
+                "offset": 125,
+                "length": 3,
+                "type": "text_link",
+                "url": "https://n8n.io/?utm_source=n8n-internal&utm_medium=powered_by&utm_campaign=n8n-nodes-base.telegram_4e25262130b8e7a866f12246588291143be16c93c3a77cf011fcdd759075b239"
+              }
+            ],
+            "link_preview_options": {
+              "is_disabled": true
+            }
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tavily Search": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get a chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a chat": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "6666e8df-86cc-4fe1-b050-9911f4b30a9c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "4e25262130b8e7a866f12246588291143be16c93c3a77cf011fcdd759075b239"
+  },
+  "id": "qhZSrryJIBRaJ4zq",
+  "tags": [
+    {
+      "updatedAt": "2025-06-06T18:19:04.680Z",
+      "createdAt": "2025-06-06T18:19:04.680Z",
+      "id": "dKoINP0gxqrPocId",
+      "name": "development"
+    },
+    {
+      "updatedAt": "2025-09-09T14:39:10.476Z",
+      "createdAt": "2025-09-09T14:39:10.476Z",
+      "id": "7IojDMNFjVqBBgbK",
+      "name": "livia"
+    }
+  ]
+}
