@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Banco de Talentos SEE-MG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              seeBlue: '#0f3d75',
+              seeBlueDark: '#0a2850',
+              seeGreen: '#1f9d6b',
+              seeGreenSoft: '#dff7ee',
+              seeBlueSoft: '#eaf3ff',
+              ink: '#18304b',
+            },
+            boxShadow: {
+              soft: '0 24px 64px rgba(15, 61, 117, 0.16)',
+            },
+            backgroundImage: {
+              hero: 'linear-gradient(135deg, rgba(10,40,80,0.96) 0%, rgba(15,61,117,0.92) 48%, rgba(31,157,107,0.85) 100%)',
+              surface: 'radial-gradient(circle at top right, rgba(31,157,107,0.18), transparent 30%), radial-gradient(circle at left center, rgba(15,61,117,0.08), transparent 28%)',
+            },
+          },
+        },
+      };
+    </script>
+    <style>
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+        background: linear-gradient(180deg, #f5f9ff 0%, #eef6f0 100%);
+      }
+      .glass {
+        background: rgba(255, 255, 255, 0.72);
+        backdrop-filter: blur(18px);
+      }
+    </style>
+  </head>
+  <body class="text-slate-800">
+    <div id="root"></div>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script type="text/babel">
+      const { useMemo, useState } = React;
+
+      const processCards = [
+        {
+          title: 'Especialista em Projetos Educacionais',
+          badge: 'Inscrições abertas',
+          summary:
+            'Banco de talentos para atuação em projetos estratégicos, inovação pedagógica e iniciativas intersetoriais da SEE-MG.',
+          place: 'Belo Horizonte · Híbrido',
+          period: 'Até 30/04/2026',
+          profile: 'Planejamento, articulação institucional e experiência com indicadores.',
+        },
+        {
+          title: 'Apoio à Gestão Escolar e Processos',
+          badge: 'Novo edital',
+          summary:
+            'Cadastro para profissionais com experiência em organização escolar, apoio administrativo e melhoria contínua.',
+          place: 'Regional · Cadastro estadual',
+          period: 'Até 12/05/2026',
+          profile: 'Gestão de processos, atendimento e domínio de sistemas administrativos.',
+        },
+        {
+          title: 'Formação e Trilhas de Desenvolvimento',
+          badge: 'Banco contínuo',
+          summary:
+            'Mapeamento de perfis para desenho de trilhas formativas, curadoria de cursos e acompanhamento de resultados.',
+          place: 'SEE-MG · Remoto/Híbrido',
+          period: 'Fluxo permanente',
+          profile: 'Curadoria educacional, facilitação e comunicação com equipes multidisciplinares.',
+        },
+      ];
+
+      const processHistory = [
+        {
+          name: 'Especialista em Projetos Educacionais',
+          code: 'BT-2026-001284',
+          date: '18/03/2026 09:40',
+          status: 'Inscrição confirmada',
+          statusTone: 'emerald',
+        },
+        {
+          name: 'Apoio à Gestão Escolar e Processos',
+          code: 'BT-2026-001301',
+          date: '--',
+          status: 'Cadastro em andamento',
+          statusTone: 'amber',
+        },
+        {
+          name: 'Formação e Trilhas de Desenvolvimento',
+          code: 'BT-2026-001198',
+          date: '02/03/2026 15:10',
+          status: 'Em análise de perfil',
+          statusTone: 'blue',
+        },
+      ];
+
+      const steps = [
+        {
+          id: 'dados',
+          title: 'Dados pessoais',
+          description: 'Identificação, contato e município de atuação.',
+          fields: [
+            { label: 'Nome completo', type: 'text', value: 'Marina Almeida Ribeiro' },
+            { label: 'CPF', type: 'text', value: '***.482.190-**' },
+            { label: 'E-mail institucional', type: 'email', value: 'marina.ribeiro@educacao.mg.gov.br' },
+            { label: 'Telefone', type: 'text', value: '(31) 99999-0000' },
+            { label: 'Município', type: 'text', value: 'Belo Horizonte' },
+            { label: 'LinkedIn ou portfólio', type: 'text', value: 'linkedin.com/in/marina-ribeiro' },
+          ],
+        },
+        {
+          id: 'vinculo',
+          title: 'Vínculo funcional',
+          description: 'Informações sobre lotação, cargo e tempo de experiência.',
+          fields: [
+            { label: 'Tipo de vínculo', type: 'select', value: 'Servidor efetivo' },
+            { label: 'Órgão/unidade de lotação', type: 'text', value: 'Subsecretaria de Desenvolvimento da Educação Básica' },
+            { label: 'Cargo atual', type: 'text', value: 'Especialista em Educação Básica' },
+            { label: 'Área principal de atuação', type: 'text', value: 'Planejamento pedagógico e projetos' },
+            { label: 'Tempo de exercício na rede', type: 'text', value: '11 anos' },
+            { label: 'Disponibilidade', type: 'select', value: 'Projetos estratégicos e grupos de trabalho' },
+          ],
+        },
+        {
+          id: 'formacao',
+          title: 'Formação e cursos',
+          description: 'Escolaridade, certificações e trilhas recentes.',
+          fields: [
+            { label: 'Escolaridade', type: 'select', value: 'Pós-graduação lato sensu' },
+            { label: 'Curso de graduação', type: 'text', value: 'Pedagogia' },
+            { label: 'Pós-graduação', type: 'text', value: 'Gestão de Projetos Educacionais' },
+            { label: 'Curso/certificação 1', type: 'text', value: 'Análise de Dados para Políticas Públicas' },
+            { label: 'Curso/certificação 2', type: 'text', value: 'Design de Trilhas Formativas' },
+            { label: 'Currículo anexo', type: 'upload', value: 'curriculo-marina-ribeiro.pdf' },
+          ],
+        },
+        {
+          id: 'competencias',
+          title: 'Competências',
+          description: 'Autoavaliação de competências técnicas, analíticas e relacionais.',
+          fields: [
+            { label: 'Planejamento pedagógico', type: 'range', value: '5/5 · Excelente' },
+            { label: 'Gestão de processos', type: 'range', value: '4/5 · Avançado' },
+            { label: 'Análise de dados educacionais', type: 'range', value: '4/5 · Avançado' },
+            { label: 'Ferramentas colaborativas', type: 'range', value: '5/5 · Excelente' },
+            { label: 'Comunicação institucional', type: 'range', value: '5/5 · Excelente' },
+            { label: 'Competência complementar', type: 'text', value: 'Facilitação de grupos e mediação de conflitos' },
+          ],
+        },
+        {
+          id: 'interesses',
+          title: 'Interesses e setores',
+          description: 'Áreas de interesse, motivações e temas prioritários.',
+          fields: [
+            { label: 'Setores de interesse', type: 'text', value: 'Inovação educacional, formação e gestão escolar' },
+            { label: 'Temas prioritários', type: 'text', value: 'Avaliação, equidade, uso pedagógico de dados e processos' },
+            { label: 'Formato de participação', type: 'select', value: 'Projetos temporários e comissões internas' },
+            { label: 'Disponibilidade de carga', type: 'text', value: 'Até 8 horas semanais, mediante alinhamento' },
+            { label: 'Motivação', type: 'textarea', value: 'Desejo contribuir em frentes estratégicas que fortaleçam a gestão educacional e ampliem o impacto das políticas públicas na rede estadual.' },
+            { label: 'Observações', type: 'textarea', value: 'Dados demonstrativos para protótipo visual. Informações oficiais serão definidas em etapa futura.' },
+          ],
+        },
+        {
+          id: 'confirmacao',
+          title: 'Confirmação',
+          description: 'Resumo do cadastro e aceite do termo.',
+          fields: [
+            { label: 'Declaração', type: 'check', value: 'Confirmo que as informações apresentadas são fictícias neste protótipo e representam apenas a proposta de interface.' },
+            { label: 'Consentimento', type: 'check', value: 'Aceito que a autenticação via gov.br será integrada futuramente ao portal.' },
+            { label: 'Comprovante', type: 'pdf', value: 'Prévia do comprovante em PDF' },
+          ],
+        },
+      ];
+
+      const Stat = ({ value, label }) => (
+        <div className="rounded-3xl border border-white/20 bg-white/10 p-5 shadow-lg shadow-slate-950/10">
+          <div className="text-3xl font-semibold text-white">{value}</div>
+          <div className="mt-1 text-sm text-blue-100">{label}</div>
+        </div>
+      );
+
+      const FieldCard = ({ field }) => {
+        const base = 'mt-2 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700 shadow-sm';
+        return (
+          <div>
+            <label className="text-sm font-medium text-slate-600">{field.label}</label>
+            {field.type === 'textarea' ? (
+              <div className={base + ' min-h-[112px] leading-6'}>{field.value}</div>
+            ) : field.type === 'upload' ? (
+              <div className={base + ' flex items-center justify-between'}>
+                <span>{field.value}</span>
+                <span className="rounded-full bg-seeBlueSoft px-3 py-1 text-xs font-semibold text-seeBlue">PDF anexado</span>
+              </div>
+            ) : field.type === 'range' ? (
+              <div className={base}>
+                <div className="mb-2 flex justify-between text-xs text-slate-500">
+                  <span>Autoavaliação</span>
+                  <span>{field.value}</span>
+                </div>
+                <div className="h-2 rounded-full bg-slate-100">
+                  <div className="h-2 rounded-full bg-gradient-to-r from-seeBlue to-seeGreen" style={{ width: `${parseInt(field.value) * 20}%` }} />
+                </div>
+              </div>
+            ) : field.type === 'check' ? (
+              <div className={base + ' flex items-start gap-3'}>
+                <div className="mt-0.5 flex h-5 w-5 items-center justify-center rounded-md bg-seeGreen text-white">✓</div>
+                <p className="leading-6">{field.value}</p>
+              </div>
+            ) : field.type === 'pdf' ? (
+              <div className={base + ' flex items-center justify-between'}>
+                <span>{field.value}</span>
+                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">Visualização pronta</span>
+              </div>
+            ) : (
+              <div className={base}>{field.value}</div>
+            )}
+          </div>
+        );
+      };
+
+      const App = () => {
+        const [currentStep, setCurrentStep] = useState(0);
+        const current = steps[currentStep];
+
+        const statusClasses = useMemo(
+          () => ({
+            emerald: 'bg-emerald-50 text-emerald-700 ring-emerald-100',
+            amber: 'bg-amber-50 text-amber-700 ring-amber-100',
+            blue: 'bg-blue-50 text-blue-700 ring-blue-100',
+          }),
+          []
+        );
+
+        return (
+          <div className="min-h-screen">
+            <header className="sticky top-0 z-30 border-b border-white/40 bg-white/80 backdrop-blur-xl">
+              <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-seeBlue to-seeGreen text-lg font-bold text-white shadow-soft">
+                    MG
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-seeGreen">Portal institucional</p>
+                    <h1 className="text-lg font-semibold text-seeBlue sm:text-xl">Banco de Talentos SEE-MG</h1>
+                  </div>
+                </div>
+                <nav className="hidden items-center gap-8 text-sm font-medium text-slate-600 lg:flex">
+                  <a href="#inicio" className="transition hover:text-seeBlue">Início</a>
+                  <a href="#processos" className="transition hover:text-seeBlue">Processos seletivos</a>
+                  <a href="#cadastro" className="transition hover:text-seeBlue">Meu cadastro</a>
+                  <a href="#historico" className="transition hover:text-seeBlue">Meus processos</a>
+                </nav>
+                <button className="rounded-2xl border border-seeBlue/10 bg-seeBlue px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-seeBlue/20 transition hover:bg-seeBlueDark">
+                  Entrar com gov.br
+                </button>
+              </div>
+            </header>
+
+            <main>
+              <section id="inicio" className="relative overflow-hidden bg-hero">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,0.16),_transparent_32%),radial-gradient(circle_at_bottom_right,_rgba(255,255,255,0.12),_transparent_28%)]" />
+                <div className="relative mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.2fr_0.8fr] lg:px-8 lg:py-24">
+                  <div>
+                    <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-sm font-medium text-blue-50 backdrop-blur-sm">
+                      Protótipo visual · Integração gov.br futura
+                    </span>
+                    <h2 className="mt-6 max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl lg:text-6xl">
+                      Um portal para conectar talentos da educação pública a projetos estratégicos da SEE-MG.
+                    </h2>
+                    <p className="mt-6 max-w-2xl text-lg leading-8 text-blue-50/90">
+                      Interface institucional inspirada em portais governamentais, com foco em clareza, confiança e organização do cadastro de servidores para oportunidades internas e processos seletivos específicos.
+                    </p>
+                    <div className="mt-10 flex flex-col gap-4 sm:flex-row">
+                      <button className="rounded-2xl bg-white px-6 py-4 text-sm font-semibold text-seeBlue shadow-soft transition hover:-translate-y-0.5">
+                        Entrar com gov.br
+                      </button>
+                      <a href="#processos" className="rounded-2xl border border-white/25 px-6 py-4 text-sm font-semibold text-white/95 transition hover:bg-white/10">
+                        Ver processos em andamento
+                      </a>
+                    </div>
+                    <div className="mt-12 grid gap-4 sm:grid-cols-3">
+                      <Stat value="3" label="processos simulados ativos" />
+                      <Stat value="6 etapas" label="cadastro guiado do perfil" />
+                      <Stat value="PDF" label="comprovante de inscrição" />
+                    </div>
+                  </div>
+
+                  <div className="glass rounded-[2rem] border border-white/30 p-6 shadow-soft">
+                    <div className="flex items-center justify-between border-b border-slate-200/80 pb-4">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.24em] text-seeGreen">Visão institucional</p>
+                        <h3 className="mt-2 text-2xl font-semibold text-seeBlue">Painel de acesso</h3>
+                      </div>
+                      <div className="rounded-full bg-seeGreenSoft px-3 py-1 text-xs font-semibold text-seeGreen">Demo</div>
+                    </div>
+                    <div className="mt-6 space-y-4">
+                      {[
+                        'Autenticação com gov.br preparada como integração futura.',
+                        'Formulário em etapas para mapear trajetória, competências e interesses.',
+                        'Acompanhamento de inscrições com status, histórico e comprovante digital.',
+                      ].map((item) => (
+                        <div key={item} className="flex gap-3 rounded-2xl bg-white/80 p-4 shadow-sm">
+                          <div className="mt-1 h-2.5 w-2.5 rounded-full bg-seeGreen" />
+                          <p className="text-sm leading-6 text-slate-600">{item}</p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="mt-6 rounded-3xl bg-slate-950 p-5 text-white shadow-2xl">
+                      <div className="flex items-center justify-between text-sm text-slate-300">
+                        <span>Próxima etapa do cadastro</span>
+                        <span>4/6</span>
+                      </div>
+                      <div className="mt-3 h-2 rounded-full bg-white/10">
+                        <div className="h-2 w-2/3 rounded-full bg-gradient-to-r from-cyan-300 to-emerald-400" />
+                      </div>
+                      <div className="mt-5 grid grid-cols-2 gap-3 text-sm">
+                        <div className="rounded-2xl bg-white/5 p-4">
+                          <div className="text-slate-400">Perfil sugerido</div>
+                          <div className="mt-2 font-semibold">Projetos Educacionais</div>
+                        </div>
+                        <div className="rounded-2xl bg-white/5 p-4">
+                          <div className="text-slate-400">Compatibilidade</div>
+                          <div className="mt-2 font-semibold">92% aderência</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                <div className="rounded-[2rem] border border-slate-200 bg-white/80 bg-surface p-8 shadow-soft lg:p-10">
+                  <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+                    <div>
+                      <p className="text-sm font-semibold uppercase tracking-[0.28em] text-seeGreen">Mensagem institucional</p>
+                      <h3 className="mt-3 text-3xl font-semibold text-seeBlue">Cadastro de talentos para futuras frentes de atuação</h3>
+                    </div>
+                    <p className="max-w-3xl text-sm leading-7 text-slate-600">
+                      Este protótipo utiliza textos demonstrativos para representar como a SEE-MG poderá apresentar oportunidades, orientar o cadastro de servidores e centralizar a gestão de perfis para projetos, grupos de trabalho e processos seletivos internos.
+                    </p>
+                  </div>
+                  <div className="mt-8 grid gap-4 md:grid-cols-3">
+                    {[
+                      'Experiência do usuário clara e responsiva, com linguagem institucional acolhedora.',
+                      'Componentes organizados para futuras integrações com autenticação e backend.',
+                      'Estrutura visual pronta para evoluir com dados reais, editais e documentos oficiais.',
+                    ].map((text, index) => (
+                      <div key={index} className="rounded-3xl border border-slate-200 bg-white/90 p-6">
+                        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl bg-seeBlueSoft text-sm font-bold text-seeBlue">
+                          0{index + 1}
+                        </div>
+                        <p className="text-sm leading-7 text-slate-600">{text}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </section>
+
+              <section id="processos" className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+                <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                  <div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.28em] text-seeGreen">Oportunidades abertas</p>
+                    <h3 className="mt-3 text-3xl font-semibold text-seeBlue">Processos seletivos em andamento</h3>
+                  </div>
+                  <p className="max-w-2xl text-sm leading-7 text-slate-600">
+                    Cards de vagas com resumo, requisitos gerais e CTA de inscrição. Os conteúdos abaixo são ilustrativos e servem apenas para demonstrar a navegação do portal.
+                  </p>
+                </div>
+                <div className="grid gap-6 xl:grid-cols-3">
+                  {processCards.map((card, index) => (
+                    <article key={card.title} className="group overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-soft transition hover:-translate-y-1">
+                      <div className={`h-40 bg-gradient-to-br ${index === 0 ? 'from-seeBlue to-sky-500' : index === 1 ? 'from-emerald-500 to-teal-400' : 'from-slate-700 to-seeBlue'} p-6`}>
+                        <div className="inline-flex rounded-full bg-white/15 px-3 py-1 text-xs font-semibold text-white backdrop-blur">{card.badge}</div>
+                        <div className="mt-8 flex h-12 w-12 items-center justify-center rounded-2xl bg-white/15 text-lg font-bold text-white backdrop-blur">
+                          {index === 0 ? 'PE' : index === 1 ? 'GE' : 'FD'}
+                        </div>
+                      </div>
+                      <div className="p-6">
+                        <h4 className="text-xl font-semibold text-seeBlue">{card.title}</h4>
+                        <p className="mt-4 text-sm leading-7 text-slate-600">{card.summary}</p>
+                        <dl className="mt-6 space-y-3 text-sm text-slate-600">
+                          <div className="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                            <dt className="font-medium text-slate-500">Abrangência</dt>
+                            <dd className="text-right">{card.place}</dd>
+                          </div>
+                          <div className="flex items-start justify-between gap-4 rounded-2xl bg-slate-50 px-4 py-3">
+                            <dt className="font-medium text-slate-500">Prazo</dt>
+                            <dd className="text-right">{card.period}</dd>
+                          </div>
+                          <div className="rounded-2xl bg-slate-50 px-4 py-3">
+                            <dt className="font-medium text-slate-500">Perfil desejado</dt>
+                            <dd className="mt-1">{card.profile}</dd>
+                          </div>
+                        </dl>
+                        <div className="mt-6 flex gap-3">
+                          <button className="flex-1 rounded-2xl bg-seeBlue px-4 py-3 text-sm font-semibold text-white transition hover:bg-seeBlueDark">
+                            Ver detalhes
+                          </button>
+                          <button className="rounded-2xl border border-seeBlue/15 px-4 py-3 text-sm font-semibold text-seeBlue transition hover:bg-seeBlueSoft">
+                            Inscrever-se
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </section>
+
+              <section id="cadastro" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                <div className="grid gap-8 xl:grid-cols-[0.34fr_0.66fr]">
+                  <aside className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft">
+                    <p className="text-sm font-semibold uppercase tracking-[0.28em] text-seeGreen">Meu cadastro</p>
+                    <h3 className="mt-3 text-3xl font-semibold text-seeBlue">Formulário em etapas</h3>
+                    <p className="mt-4 text-sm leading-7 text-slate-600">
+                      Navegação visual para demonstrar o fluxo de preenchimento do perfil profissional. Os campos abaixo estão preenchidos com textos fictícios para fins de prototipação.
+                    </p>
+                    <div className="mt-8 space-y-3">
+                      {steps.map((step, index) => (
+                        <button
+                          key={step.id}
+                          onClick={() => setCurrentStep(index)}
+                          className={`flex w-full items-start gap-4 rounded-2xl border px-4 py-4 text-left transition ${
+                            currentStep === index
+                              ? 'border-seeBlue bg-seeBlue text-white shadow-lg shadow-seeBlue/15'
+                              : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-seeBlue/30 hover:bg-white'
+                          }`}
+                        >
+                          <div className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-semibold ${currentStep === index ? 'bg-white/20 text-white' : 'bg-white text-seeBlue'}`}>
+                            {index + 1}
+                          </div>
+                          <div>
+                            <div className={`font-semibold ${currentStep === index ? 'text-white' : 'text-slate-800'}`}>{step.title}</div>
+                            <div className={`mt-1 text-xs leading-5 ${currentStep === index ? 'text-blue-100' : 'text-slate-500'}`}>{step.description}</div>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </aside>
+
+                  <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft lg:p-8">
+                    <div className="flex flex-col gap-4 border-b border-slate-200 pb-6 md:flex-row md:items-end md:justify-between">
+                      <div>
+                        <div className="text-sm font-semibold uppercase tracking-[0.24em] text-seeGreen">Etapa {currentStep + 1} de {steps.length}</div>
+                        <h4 className="mt-2 text-2xl font-semibold text-seeBlue">{current.title}</h4>
+                        <p className="mt-2 text-sm leading-7 text-slate-600">{current.description}</p>
+                      </div>
+                      <div className="w-full max-w-xs">
+                        <div className="mb-2 flex justify-between text-xs font-medium text-slate-500">
+                          <span>Progresso do cadastro</span>
+                          <span>{Math.round(((currentStep + 1) / steps.length) * 100)}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-slate-100">
+                          <div className="h-2 rounded-full bg-gradient-to-r from-seeBlue to-seeGreen transition-all" style={{ width: `${((currentStep + 1) / steps.length) * 100}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-8 grid gap-5 md:grid-cols-2">
+                      {current.fields.map((field) => (
+                        <div key={field.label} className={field.type === 'textarea' ? 'md:col-span-2' : ''}>
+                          <FieldCard field={field} />
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="mt-8 flex flex-col gap-4 border-t border-slate-200 pt-6 sm:flex-row sm:justify-between">
+                      <button
+                        onClick={() => setCurrentStep((value) => Math.max(value - 1, 0))}
+                        className="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+                      >
+                        Etapa anterior
+                      </button>
+                      <div className="flex gap-3">
+                        <button className="rounded-2xl border border-seeBlue/15 px-5 py-3 text-sm font-semibold text-seeBlue transition hover:bg-seeBlueSoft">
+                          Salvar rascunho
+                        </button>
+                        <button
+                          onClick={() => setCurrentStep((value) => Math.min(value + 1, steps.length - 1))}
+                          className="rounded-2xl bg-seeGreen px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                        >
+                          Próxima etapa
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section id="historico" className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8">
+                <div className="grid gap-8 xl:grid-cols-[0.6fr_0.4fr]">
+                  <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft lg:p-8">
+                    <div className="flex flex-col gap-3 border-b border-slate-200 pb-6 md:flex-row md:items-end md:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-seeGreen">Meus processos seletivos</p>
+                        <h3 className="mt-2 text-3xl font-semibold text-seeBlue">Acompanhamento de status</h3>
+                      </div>
+                      <div className="inline-flex rounded-full bg-seeBlueSoft px-4 py-2 text-sm font-medium text-seeBlue">Dados fictícios para demonstração</div>
+                    </div>
+
+                    <div className="mt-6 overflow-hidden rounded-3xl border border-slate-200">
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-slate-200 text-sm">
+                          <thead className="bg-slate-50 text-left text-slate-500">
+                            <tr>
+                              <th className="px-5 py-4 font-semibold">Processo</th>
+                              <th className="px-5 py-4 font-semibold">Inscrição</th>
+                              <th className="px-5 py-4 font-semibold">Última atualização</th>
+                              <th className="px-5 py-4 font-semibold">Status</th>
+                              <th className="px-5 py-4 font-semibold">Ação</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 bg-white">
+                            {processHistory.map((item) => (
+                              <tr key={item.code} className="hover:bg-slate-50/70">
+                                <td className="px-5 py-4">
+                                  <div className="font-medium text-slate-800">{item.name}</div>
+                                  <div className="mt-1 text-xs text-slate-500">SEE-MG · Banco de Talentos</div>
+                                </td>
+                                <td className="px-5 py-4 font-medium text-slate-700">{item.code}</td>
+                                <td className="px-5 py-4 text-slate-600">{item.date}</td>
+                                <td className="px-5 py-4">
+                                  <span className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ring-1 ${statusClasses[item.statusTone]}`}>
+                                    {item.status}
+                                  </span>
+                                </td>
+                                <td className="px-5 py-4">
+                                  <button className="rounded-xl border border-seeBlue/10 px-3 py-2 font-semibold text-seeBlue transition hover:bg-seeBlueSoft">
+                                    Ver detalhes
+                                  </button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-soft lg:p-8">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-seeGreen">Comprovante</p>
+                        <h3 className="mt-2 text-3xl font-semibold text-seeBlue">Prévia em PDF</h3>
+                      </div>
+                      <button className="rounded-2xl border border-seeBlue/15 px-4 py-3 text-sm font-semibold text-seeBlue transition hover:bg-seeBlueSoft">
+                        Baixar PDF
+                      </button>
+                    </div>
+
+                    <div className="mt-6 rounded-[2rem] bg-slate-100 p-4">
+                      <div className="mx-auto rounded-[1.5rem] border border-slate-200 bg-white p-6 shadow-lg">
+                        <div className="border-b border-slate-200 pb-5 text-center">
+                          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-seeBlue to-seeGreen text-lg font-bold text-white">MG</div>
+                          <h4 className="mt-4 text-2xl font-bold tracking-wide text-seeBlue">BANCO DE TALENTOS SEE-MG</h4>
+                          <p className="mt-2 text-sm uppercase tracking-[0.22em] text-slate-500">Comprovante de inscrição · prévia visual</p>
+                        </div>
+                        <div className="grid gap-4 border-b border-slate-200 py-5 text-sm md:grid-cols-2">
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Candidato(a)</div>
+                            <div className="mt-1 font-semibold text-slate-800">Marina Almeida Ribeiro</div>
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Nº da inscrição</div>
+                            <div className="mt-1 font-semibold text-slate-800">BT-2026-001284</div>
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Processo</div>
+                            <div className="mt-1 font-semibold text-slate-800">Especialista em Projetos Educacionais</div>
+                          </div>
+                          <div>
+                            <div className="text-xs uppercase tracking-[0.2em] text-slate-400">Data de emissão</div>
+                            <div className="mt-1 font-semibold text-slate-800">18/03/2026 · 09:40</div>
+                          </div>
+                        </div>
+                        <div className="py-5 text-sm leading-7 text-slate-600">
+                          Declaro, para fins de demonstração desta interface, que o comprovante abaixo representa o formato previsto para futuras inscrições realizadas no Banco de Talentos SEE-MG.
+                        </div>
+                        <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 text-xs uppercase tracking-[0.2em] text-slate-400">
+                          Documento digital ilustrativo · sem validade oficial
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+                <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-soft">
+                  <div className="grid lg:grid-cols-[0.42fr_0.58fr]">
+                    <div className="bg-hero p-8 text-white lg:p-10">
+                      <p className="text-sm font-semibold uppercase tracking-[0.28em] text-blue-100">Próximos desdobramentos</p>
+                      <h3 className="mt-3 text-3xl font-semibold">Preparado para evolução futura</h3>
+                      <p className="mt-4 text-sm leading-7 text-blue-50/90">
+                        O protótipo foi estruturado para acomodar integração com autenticação, serviços de inscrição, área logada, filtros de vagas, notificações e geração real de documentos.
+                      </p>
+                    </div>
+                    <div className="p-8 lg:p-10">
+                      <div className="grid gap-4 md:grid-cols-2">
+                        {[
+                          ['Autenticação', 'Botão “Entrar com gov.br” configurado como placeholder visual para implementação futura.'],
+                          ['Responsividade', 'Grid fluido, cartões adaptáveis e seções que reorganizam o conteúdo em telas menores.'],
+                          ['Dados fictícios', 'Todos os textos, oportunidades e registros foram redigidos apenas para fins de apresentação.'],
+                          ['Identidade visual', 'Linguagem visual genérica inspirada em portais públicos, sem uso de marcas oficiais.'],
+                        ].map(([title, text]) => (
+                          <div key={title} className="rounded-3xl border border-slate-200 bg-slate-50 p-5">
+                            <div className="text-base font-semibold text-seeBlue">{title}</div>
+                            <p className="mt-2 text-sm leading-7 text-slate-600">{text}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+            </main>
+          </div>
+        );
+      };
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+  </body>
+</html>
