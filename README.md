@@ -1,70 +1,67 @@
 # TempBot Brasil (Telegram + n8n + OpenWeather)
 
-Bot do Telegram criado no n8n que informa a **temperatura atual** e a **condição climática** de qualquer cidade do Brasil, em tempo real.
+Bot do Telegram criado no n8n que informa a temperatura atual e a condição climática de cidades do Brasil, em tempo real.
 
-## ✅ O que este projeto faz
-- Recebe mensagens pelo Telegram (gatilho em tempo real)
-- Normaliza o texto do usuário (trim, remoção de acentos, remoção de palavras “qual o clima em…”, etc.)
-- Consulta o clima atual na OpenWeather
-- Retorna uma mensagem amigável com:
-  - cidade
-  - temperatura arredondada
-  - sensação térmica
-  - condição
-  - umidade
-- Possui comandos `/start` e `/ajuda`
+## Objetivo
+- Receber mensagens via Telegram (tempo real)
+- Normalizar a entrada do usuário (trim, remoção de acentos e limpeza de texto)
+- Consultar clima atual na OpenWeather
+- Retornar resposta com dados estruturados (cidade, temperatura arredondada, sensação térmica, condição e umidade)
+- Disponibilizar comandos `/start` e `/ajuda`
 
-## 🧱 Arquitetura do workflow (n8n)
+## Arquitetura do workflow (n8n)
 Fluxo principal:
-1. **Telegram Trigger**
-2. **Normalize input (Code)** — limpa e extrai a cidade
-3. **Switch** — trata `/start` e `/ajuda`
-4. **OpenWeatherMap** — busca o clima atual (métrico)
-5. **IF (Weather OK?)** — separa sucesso/erro
-6. **Set (Build reply)** — monta texto final com campos exatos
-7. **Telegram Send Message** — envia a resposta
+1. Telegram Trigger
+2. Normalize input (Code) — limpeza e extração da cidade
+3. Switch — rotas para `/start`, `/ajuda` e consulta padrão
+4. OpenWeatherMap — consulta de clima atual
+5. IF (Weather OK?) — tratamento de sucesso/erro
+6. Set (Build reply) — montagem do texto com campos exatos e arredondamento
+7. Telegram Send Message — envio da resposta ao usuário
 
-## 🔐 Credenciais necessárias (não coloque tokens no repositório)
-Este projeto usa credenciais configuradas **no n8n** (nada de tokens no JSON/README).
+## Credenciais necessárias (não versionar tokens)
+Este projeto utiliza credenciais configuradas no n8n. Não inclua tokens ou chaves no repositório.
 
 ### 1) Telegram
-- **TELEGRAM_BOT_TOKEN** (gerado no BotFather)
+- `TELEGRAM_BOT_TOKEN` (gerado no BotFather)
 
-**Como configurar no n8n**
-- `Credentials` → **Telegram API**
-  - Campo **Access Token**: `TELEGRAM_BOT_TOKEN`
+Como configurar no n8n:
+- Credentials → Telegram API
+  - Access Token: `TELEGRAM_BOT_TOKEN`
 
 ### 2) OpenWeather
-- **OPENWEATHER_API_KEY** (API key da OpenWeather / OpenWeatherMap)
+- `OPENWEATHER_API_KEY` (API key do OpenWeather / OpenWeatherMap)
 
-**Como configurar no n8n**
-- `Credentials` → **OpenWeatherMap API** (ou similar)
-  - Campo **Access Token / API Key**: `OPENWEATHER_API_KEY`
+Como configurar no n8n:
+- Credentials → OpenWeatherMap API (ou equivalente)
+  - API Key / Token: `OPENWEATHER_API_KEY`
 
-> No workflow, o node OpenWeather está configurado em **Metric** e o input da cidade vem do campo normalizado `owmCity` (ex.: `Belo Horizonte,BR`).
+Observação:
+- O workflow consulta em unidades métricas e utiliza como entrada a cidade normalizada no formato `Cidade,BR` (ex.: `Belo Horizonte,BR`).
 
-## 🚀 Como rodar
-1. Crie um bot no Telegram via **BotFather** e copie o token.
-2. Crie uma API key na **OpenWeather**.
+## Como executar
+1. Crie um bot no Telegram via BotFather e obtenha o token.
+2. Crie uma API key na OpenWeather.
 3. No n8n:
-   - Crie as credenciais **Telegram API** e **OpenWeatherMap API**
-   - Importe o workflow `bot-temperatura-telegram.json`
-   - Abra o workflow e selecione as credenciais nos nós correspondentes
+   - Crie as credenciais Telegram API e OpenWeatherMap API
+   - Importe o arquivo `bot-temperatura-telegram.json`
+   - Selecione as credenciais nos nós correspondentes
 4. Ative o workflow (Active = ON)
-5. No Telegram, abra o bot e teste.
+5. Envie mensagens para o bot no Telegram para testar.
 
-## 💬 Como usar no Telegram
-- `/start` → boas-vindas e exemplos
-- `/ajuda` → instruções rápidas
-- Envie uma cidade:
-  - `Belo Horizonte`
-  - `Uberaba, MG`
-  - `Qual o clima em Belo Horizonte agora?`
-  - `/tempo Contagem`
+## Como usar no Telegram
+Comandos:
+- `/start` — mensagem de boas-vindas e exemplos
+- `/ajuda` — instruções de uso
 
-## 🧯 Tratamento de erros
-- Se a cidade não for encontrada ou a API retornar erro, o bot responde:
-  - “Não encontrei essa cidade 😕 Tenta no formato: Cidade, UF (ex.: Uberaba, MG).”
+Exemplos de consulta:
+- `Belo Horizonte`
+- `Uberaba, MG`
+- `Qual o clima em Belo Horizonte agora?`
+- `/tempo Contagem`
 
-## 📦 Arquivos
+## Tratamento de erros
+- Se a cidade não for encontrada ou houver falha na consulta, o bot retorna uma mensagem orientando o envio no formato `Cidade, UF` (ex.: `Uberaba, MG`).
+
+## Arquivos
 - `bot-temperatura-telegram.json` — workflow exportado do n8n
