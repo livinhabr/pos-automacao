@@ -11,10 +11,10 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        0,
+        48,
         0
       ],
-      "id": "c1a19cbe-237c-4348-822a-25ec98bad6f5",
+      "id": "50e9345d-ccb6-4282-8853-35aba5f45f61",
       "name": "Telegram Trigger",
       "webhookId": "7a2f617a-0832-4ef3-866e-0937e5fa0a21",
       "credentials": {
@@ -26,85 +26,84 @@
     },
     {
       "parameters": {
-        "promptType": "define",
-        "text": "={{ $json.message.text }}",
-        "options": {
-          "systemMessage": "=Você é um assistente de meteorologia amigável e direto ao ponto, operando dentro de um bot do Telegram.\n\nSua única e exclusiva função é informar a temperatura e a condição climática atual de uma cidade brasileira especificada pelo usuário.\n\n**REGRAS OBRIGATÓRIAS:**\n\n1.  **SEMPRE USE A FERRAMENTA:** Você **DEVE OBRIGATORIAMENTE** usar a ferramenta `Tavily Search` para obter as informações de clima. Não tente responder com base em seu conhecimento prévio ou qualquer outra fonte.\n2.  **FORMATE A CONSULTA:** Ao usar a ferramenta, sua consulta (query) deve ser sempre no formato: `\"temperatura atual em [Nome da Cidade]\"`.\n3.  **EXTRAIA A CIDADE:** Identifique o nome da cidade na mensagem do usuário. Se o usuário perguntar \"Como está o tempo em Porto Alegre?\", sua consulta para a ferramenta será `\"temperatura atual em Porto Alegre\"`.\n4.  **RESPOSTA DIRETA:** Após obter o resultado da ferramenta, responda ao usuário de forma clara e concisa. Por exemplo: \"A temperatura atual em Porto Alegre é de 22°C com céu claro.\"\n5.  **MENSAGEM INVÁLIDA:** Se a mensagem do usuário não contiver o nome de uma cidade ou não for uma pergunta sobre o clima, responda educadamente: \"Olá! Posso informar a temperatura atual de qualquer cidade do Brasil. Por favor, me diga qual cidade você gostaria de consultar.\""
-        }
+        "jsCode": "const msgRaw = $json.message?.text ?? \"\";\nconst chatId = $json.message?.chat?.id;\n\nfunction stripAccents(s = \"\") {\n  return String(s)\n    .normalize(\"NFD\")\n    .replace(/[\\u0300-\\u036f]/g, \"\");\n}\nfunction cleanSpaces(s = \"\") {\n  return String(s).replace(/\\s+/g, \" \").trim();\n}\n\n// Base para análise (sem acento, para facilitar match)\nlet text = cleanSpaces(stripAccents(msgRaw));\nlet lower = text.toLowerCase();\n\n// comandos básicos\nconst cmd = lower.split(\" \")[0];\nif (cmd === \"/start\" || cmd === \"/ajuda\") {\n  return [{ json: { chatId, command: cmd } }];\n}\n\n// aceita \"/tempo cidade\"\nif (lower.startsWith(\"/tempo\")) {\n  text = cleanSpaces(text.slice(6));\n  lower = text.toLowerCase();\n}\n\n// remove pontuação final\ntext = text.replace(/[?!.,;:]+$/g, \"\").trim();\nlower = text.toLowerCase();\n\n// remove “frases de pergunta” comuns\ntext = text\n  .replace(\n    /^(qual|como|me diz|me fale|pode me dizer|vc sabe|você sabe)\\s+/i,\n    \"\",\n  )\n  .replace(/^(o|a)?\\s*(clima|tempo|temperatura)\\s*(atual)?\\s*(em|de)\\s+/i, \"\")\n  .replace(\n    /^qual\\s+(o|a)?\\s*(clima|tempo|temperatura)\\s*(atual)?\\s*(em|de)\\s+/i,\n    \"\",\n  )\n  .trim();\n\n// tenta pegar tudo depois de \"em ...\"\nlet cityPart = text;\nconst m = text.match(/\\bem\\s+(.+)$/i);\nif (m?.[1]) cityPart = m[1].trim();\n\n// remove sufixos tipo “agora/hoje/pfv”\ncityPart = cityPart\n  .replace(/\\b(agora|hoje|por favor|pfv|pls|plz)\\b/gi, \"\")\n  .replace(/[?!.,;:]+$/g, \"\")\n  .trim();\n\n// se veio \"Cidade, MG\" separa UF\nlet city = cityPart;\nlet state = null;\n\nif (cityPart.includes(\",\")) {\n  const [c, rest] = cityPart.split(\",\", 2);\n  city = c.trim();\n  const uf = rest.trim().slice(0, 2).toUpperCase();\n  if (/^[A-Z]{2}$/.test(uf)) state = uf;\n}\n\n// versões finais\nconst cityDisplay = cleanSpaces(city); // pra mostrar\nconst cityApi = cleanSpaces(stripAccents(city)); // pra API\n\n// para o node OpenWeatherMap (padrão: cidade + país)\nconst owmCity = `${cityApi},BR`;\n\nreturn [{ json: { chatId, command: null, cityDisplay, state, owmCity } }];\n"
       },
-      "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 3,
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
       "position": [
-        144,
+        192,
         0
       ],
-      "id": "31371e76-aea1-4b93-96cf-58b1baa05e42",
-      "name": "AI Agent"
+      "id": "90ba0c8a-c301-4aa9-ae95-992c395970e7",
+      "name": "Normalize input"
     },
     {
       "parameters": {
-        "options": {}
+        "cityName": "={{ $json.owmCity }}",
+        "language": "pt-br"
       },
-      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "type": "n8n-nodes-base.openWeatherMap",
       "typeVersion": 1,
       "position": [
-        144,
-        192
+        624,
+        176
       ],
-      "id": "8288d363-52c7-49eb-af96-ff4a8f89e5b8",
-      "name": "Google Gemini Chat Model",
+      "id": "58d916de-488e-4242-926e-1d17604d7672",
+      "name": "OpenWeatherMap",
       "credentials": {
-        "googlePalmApi": {
-          "id": "UNWEz9xnE5xWT3BE",
-          "name": "Google Gemini(PaLM) Api Lívia"
+        "openWeatherMapApi": {
+          "id": "vuq2LO3ZJ4WoRzB2",
+          "name": "OpenWeatherMap Lívia"
         }
       }
     },
     {
       "parameters": {
-        "toolDescription": "=Use esta ferramenta para obter a temperatura e a condição climática atual de qualquer cidade do Brasil. A entrada para a ferramenta deve ser sempre uma consulta no formato \"temperatura atual em [Nome da Cidade]\".",
-        "method": "POST",
-        "url": "https://api.tavily.com/search",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
             {
-              "name": "query",
-              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `The search query.`, 'string') }}"
-            },
-            {
-              "name": "search_depth",
-              "value": "advanced"
+              "id": "f9eb24af-ff7b-40ed-ab1e-8fae772d2ee1",
+              "leftValue": true,
+              "rightValue": "={{ ($json.cod ?? 0) === 200 }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
             }
-          ]
+          ],
+          "combinator": "and"
         },
         "options": {}
       },
-      "type": "n8n-nodes-base.httpRequestTool",
-      "typeVersion": 4.3,
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
       "position": [
-        288,
-        192
+        800,
+        176
       ],
-      "id": "4d742dba-7be5-4299-8068-4a0a7b253d96",
-      "name": "Tavily Search",
-      "credentials": {
-        "httpHeaderAuth": {
-          "id": "xecQOm7eR3ZD8MB9",
-          "name": "Tavily Authorization - Lívia"
-        }
-      }
+      "id": "0cc8c7a8-bc9f-43e2-a4fa-fbe570ad4535",
+      "name": "Weather OK?"
     },
     {
       "parameters": {
         "assignments": {
           "assignments": [
             {
-              "id": "694aa0e1-895b-42d4-8a3f-6e58f5042cb8",
-              "name": "post",
-              "value": "={{ $json.output }}",
+              "id": "10f4345e-5810-4272-b07e-a07c54f0b073",
+              "name": "chatId",
+              "value": "={{ $('Normalize input').item.json.chatId }}",
+              "type": "string"
+            },
+            {
+              "id": "292a2251-37cf-4338-bc3a-203f0e17a52d",
+              "name": "replyText",
+              "value": "={{\"🌡️ Clima em \" + $json.name+ \"\\nTemperatura: \" + Math.round($json.main.temp) + \"°C\"+ \" (sensação \" + Math.round($json.main.feels_like) + \"°C)\"+ \"\\nCondição: \" + $json.weather[0].description+ \"\\nUmidade: \" + $json.main.humidity + \"%\"}}",
               "type": "string"
             }
           ]
@@ -114,26 +113,27 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        416,
-        0
+        1008,
+        80
       ],
-      "id": "fec22bd3-dd43-4b1c-80bf-c7b1fd66130f",
+      "id": "7de3aaf2-30ca-42ac-aa2a-fed0c36e386b",
       "name": "Edit Fields"
     },
     {
       "parameters": {
-        "resource": "chat",
-        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}"
+        "chatId": "={{ $('Normalize input').item.json.chatId }}",
+        "text": "Não encontrei essa cidade 😕 Tenta no formato: Cidade, UF (ex.: Uberaba, MG).",
+        "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        560,
-        0
+        1008,
+        272
       ],
-      "id": "aedcb1b5-94b1-48db-92dc-63356ff11157",
-      "name": "Get a chat",
-      "webhookId": "e5bb6898-c8a9-493e-86e8-67cf694f7db6",
+      "id": "fdbea9a6-6fe2-4240-a400-687087875c71",
+      "name": "Send error",
+      "webhookId": "ba494e51-d08d-4bb0-81bc-8b196169265c",
       "credentials": {
         "telegramApi": {
           "id": "OlozMxWnIyHPAt7V",
@@ -143,19 +143,148 @@
     },
     {
       "parameters": {
-        "chatId": "={{ $json.result.id }}",
-        "text": "={{ $('AI Agent').item.json.output }}",
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "/start",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "429fb90d-03d9-445e-a1a7-b70dddf02873"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "1e01dd0b-35ae-46f8-a36a-63e8289df398",
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "/ajuda",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "b0f27963-db9d-4281-a937-9bbade5f20a0",
+                    "leftValue": "={{ $json.command }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "empty",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        352,
+        -16
+      ],
+      "id": "30a8d828-deee-41a9-950f-0da0505b4b32",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Normalize input').item.json.chatId }}",
+        "text": "={{$json.replyText}}",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        704,
+        1216,
+        80
+      ],
+      "id": "228720fc-1c81-4980-ae40-b2767b9ce576",
+      "name": "Send weather",
+      "webhookId": "2198aaa2-d9d5-4de8-82c7-6b6b9ede5605",
+      "credentials": {
+        "telegramApi": {
+          "id": "OlozMxWnIyHPAt7V",
+          "name": "Telegram account - Lívia"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Normalize input').item.json.chatId }}",
+        "text": "Oi! 👋 Eu te digo a temperatura atual de qualquer cidade do Brasil 🌡️  Me mande a cidade (ex.: Belo Horizonte | Uberaba, MG | /tempo Contagem) Se precisar, digite /ajuda 😉",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        640,
+        -176
+      ],
+      "id": "5b06d1b8-e7f8-4baa-877b-918436ba71d9",
+      "name": "Send /start",
+      "webhookId": "4b027af7-c9d9-412f-9c09-76e331e7f1f2",
+      "credentials": {
+        "telegramApi": {
+          "id": "OlozMxWnIyHPAt7V",
+          "name": "Telegram account - Lívia"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Normalize input').item.json.chatId }}",
+        "text": "Como usar: • Envie o nome da cidade (ex.: Juiz de Fora) • Se der ruim, tente “Cidade, UF” (ex.: Uberaba, MG) • Também funciona: /tempo Cidade",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        640,
         0
       ],
-      "id": "46751fde-2ee1-4e4a-8436-5b9e3f069b7d",
-      "name": "Send a text message",
-      "webhookId": "d005fe77-4e6a-4ac2-b01b-812957175ce3",
+      "id": "3dedb959-14b5-414a-a5bf-bc9f6276680d",
+      "name": "Send /ajuda",
+      "webhookId": "79705064-a06d-4379-b2ac-3e4043af8c93",
       "credentials": {
         "telegramApi": {
           "id": "OlozMxWnIyHPAt7V",
@@ -164,144 +293,42 @@
       }
     }
   ],
-  "pinData": {
-    "Telegram Trigger": [
-      {
-        "json": {
-          "update_id": 90249891,
-          "message": {
-            "message_id": 5,
-            "from": {
-              "id": 708102364,
-              "is_bot": false,
-              "first_name": "Lívia",
-              "username": "livinhabr92",
-              "language_code": "pt-br"
-            },
-            "chat": {
-              "id": 708102364,
-              "first_name": "Lívia",
-              "username": "livinhabr92",
-              "type": "private"
-            },
-            "date": 1772114342,
-            "text": "Qual o clima em Belo Horizonte agora?"
-          }
-        }
-      }
-    ],
-    "AI Agent": [
-      {
-        "json": {
-          "output": "A temperatura atual em Belo Horizonte é de aproximadamente 27°C com chuva ligeira."
-        }
-      }
-    ],
-    "Edit Fields": [
-      {
-        "json": {
-          "post": "A temperatura atual em Belo Horizonte é de aproximadamente 27°C com chuva ligeira."
-        }
-      }
-    ],
-    "Get a chat": [
-      {
-        "json": {
-          "ok": true,
-          "result": {
-            "id": 708102364,
-            "first_name": "Lívia",
-            "username": "livinhabr92",
-            "type": "private",
-            "can_send_gift": true,
-            "active_usernames": [
-              "livinhabr92"
-            ],
-            "has_private_forwards": true,
-            "accepted_gift_types": {
-              "unlimited_gifts": true,
-              "limited_gifts": true,
-              "unique_gifts": true,
-              "premium_subscription": true,
-              "gifts_from_channels": true
-            },
-            "photo": {
-              "small_file_id": "AQADAQADyqcxG9zINCoACAIAA9zINCoABNjeIfrW9pUXOgQ",
-              "small_file_unique_id": "AQADyqcxG9zINCoAAQ",
-              "big_file_id": "AQADAQADyqcxG9zINCoACAMAA9zINCoABNjeIfrW9pUXOgQ",
-              "big_file_unique_id": "AQADyqcxG9zINCoB"
-            },
-            "max_reaction_count": 11,
-            "accent_color_id": 4
-          }
-        }
-      }
-    ],
-    "Send a text message": [
-      {
-        "json": {
-          "ok": true,
-          "result": {
-            "message_id": 18,
-            "from": {
-              "id": 8248198382,
-              "is_bot": true,
-              "first_name": "tempbot_brasil",
-              "username": "tempbot_brasil_bot"
-            },
-            "chat": {
-              "id": 708102364,
-              "first_name": "Lívia",
-              "username": "livinhabr92",
-              "type": "private"
-            },
-            "date": 1773084337,
-            "text": "A temperatura atual em Belo Horizonte é de aproximadamente 27°C com chuva ligeira.\n\nThis message was sent automatically with n8n",
-            "entities": [
-              {
-                "offset": 84,
-                "length": 41,
-                "type": "italic"
-              },
-              {
-                "offset": 125,
-                "length": 3,
-                "type": "text_link",
-                "url": "https://n8n.io/?utm_source=n8n-internal&utm_medium=powered_by&utm_campaign=n8n-nodes-base.telegram_4e25262130b8e7a866f12246588291143be16c93c3a77cf011fcdd759075b239"
-              }
-            ],
-            "link_preview_options": {
-              "is_disabled": true
-            }
-          }
-        }
-      }
-    ]
-  },
+  "pinData": {},
   "connections": {
     "Telegram Trigger": {
       "main": [
         [
           {
-            "node": "AI Agent",
+            "node": "Normalize input",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Google Gemini Chat Model": {
-      "ai_languageModel": [
+    "Normalize input": {
+      "main": [
         [
           {
-            "node": "AI Agent",
-            "type": "ai_languageModel",
+            "node": "Switch",
+            "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "AI Agent": {
+    "OpenWeatherMap": {
+      "main": [
+        [
+          {
+            "node": "Weather OK?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Weather OK?": {
       "main": [
         [
           {
@@ -309,15 +336,11 @@
             "type": "main",
             "index": 0
           }
-        ]
-      ]
-    },
-    "Tavily Search": {
-      "ai_tool": [
+        ],
         [
           {
-            "node": "AI Agent",
-            "type": "ai_tool",
+            "node": "Send error",
+            "type": "main",
             "index": 0
           }
         ]
@@ -327,18 +350,32 @@
       "main": [
         [
           {
-            "node": "Get a chat",
+            "node": "Send weather",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Get a chat": {
+    "Switch": {
       "main": [
         [
           {
-            "node": "Send a text message",
+            "node": "Send /start",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send /ajuda",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "OpenWeatherMap",
             "type": "main",
             "index": 0
           }
@@ -350,12 +387,12 @@
   "settings": {
     "executionOrder": "v1"
   },
-  "versionId": "6666e8df-86cc-4fe1-b050-9911f4b30a9c",
+  "versionId": "64d8022c-466c-483e-92d3-fdedc0adc706",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "4e25262130b8e7a866f12246588291143be16c93c3a77cf011fcdd759075b239"
   },
-  "id": "qhZSrryJIBRaJ4zq",
+  "id": "sLmSEu3cHutq52wd",
   "tags": [
     {
       "updatedAt": "2025-06-06T18:19:04.680Z",
